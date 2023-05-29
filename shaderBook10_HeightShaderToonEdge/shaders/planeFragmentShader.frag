@@ -20,7 +20,7 @@ varying vec3 vViewDir;
 
 void main() {
 
-  float yNormalized = (vPosition.y - minHeight) / (maxHeight - minHeight);
+  float yNormalized = (vPosition.z - minHeight) / (maxHeight - minHeight);
   vec3 color = mix(bottomColor, topColor, yNormalized);
 
   DirectionalLightShadow directionalShadow = directionalLightShadows[0];
@@ -36,21 +36,19 @@ void main() {
 
   float NdotL = dot(vNormal, directionalLights[0].direction);
 
-  float lightIntensity =max((NdotL * shadow),0.0)*.5 + 0.5;
-  float toon = ceil(lightIntensity * 1.5) / 1.5;
+  float lightIntensity =max((NdotL * shadow),0.0) * 0.5 + 0.5;
 
-  vec3 toonGradation = mix(bottomColor, vec3(toon), vec3(yNormalized));//툰의 명암을 높이에 따라 점점 아래로 연하게 만드는 부분
+  //하프램버트를하는 법을 알아내다.
 
-  vec3 directionalLight = color * toonGradation;
+  vec3 directionalLight = color * lightIntensity;
 
-  //스페큘러
   vec3 halfVector = normalize(directionalLights[0].direction + vViewDir);
   float NdotH = clamp(dot(vNormal, halfVector),0.0,1.0);
 
-  float specularIntensity = pow(NdotH * lightIntensity, 50.0 / uGlossiness);
-  float specularIntensitySmooth = smoothstep(0.05, 0.1, specularIntensity);
+  float specularIntensity = pow(NdotH * lightIntensity, 300.0 / uGlossiness);
+ //float specularIntensitySmooth = smoothstep(0.05, 0.1, specularIntensity);
 
-  vec3 specular = specularIntensitySmooth * vec3(1.0,1.0,1.0);
+  vec3 specular = specularIntensity * vec3(1.0,1.0,1.0);
   
    gl_FragColor = vec4((directionalLight + ambientLightColor + specular), 1.0);
 }

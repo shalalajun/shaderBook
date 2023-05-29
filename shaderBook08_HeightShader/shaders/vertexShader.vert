@@ -21,7 +21,25 @@ void main() {
   
   vNormal = normalize(normalMatrix * normal);
   vViewDir = normalize(-viewPosition.xyz);
-  vPosition = position;
+  vPosition =position.xyz; //월드 좌표를 사용하려면 modelPosition.xyz를 사용하면 된다.
 
   gl_Position = clipPosition;
 }
+
+// // = object.matrixWorld
+// uniform mat4 modelMatrix;
+
+// // = camera.matrixWorldInverse * object.matrixWorld
+// uniform mat4 modelViewMatrix;
+
+// // = camera.projectionMatrix
+// uniform mat4 projectionMatrix;
+
+// // = camera.matrixWorldInverse
+// uniform mat4 viewMatrix;
+
+// // = inverse transpose of modelViewMatrix
+// uniform mat3 normalMatrix;
+
+// // = camera position in world space
+// uniform vec3 cameraPosition;

@@ -20,7 +20,7 @@ varying vec3 vViewDir;
 
 void main() {
 
-  float yNormalized = (vPosition.y - minHeight) / (maxHeight - minHeight);
+  float yNormalized = (vPosition.z - minHeight) / (maxHeight - minHeight);
   vec3 color = mix(bottomColor, topColor, yNormalized);
   gl_FragColor = vec4(color, 1.0);
 

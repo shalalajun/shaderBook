@@ -78,6 +78,7 @@ const planeMaterial = new THREE.MeshStandardMaterial({color:'#ff0000'})
 // Mesh
 const mesh = new THREE.Mesh(geometry, material)
 mesh.position.z = 0.5
+mesh.rotation.y = 2.0;
 mesh.castShadow = true
 mesh.receiveShadow = true
 

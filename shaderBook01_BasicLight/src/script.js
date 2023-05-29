@@ -31,7 +31,7 @@ const plane = new THREE.PlaneGeometry(10,10)
 
 //Light
 const directionalLight = new THREE.DirectionalLight('#fff7e0', 0.25)
-directionalLight.position.set(1, -0.5, 3);
+directionalLight.position.set(2, -2.25, 2);
 directionalLight.shadow.mapSize.width = 2048
 directionalLight.shadow.mapSize.height = 2048
 directionalLight.castShadow = true
@@ -66,7 +66,7 @@ const material = new THREE.ShaderMaterial(
 const phongMaterial = new THREE.MeshPhongMaterial({color:"#ffffff"})
     
 
-const planeMaterial = new THREE.MeshStandardMaterial({color:'#ff0000'})
+const planeMaterial = new THREE.MeshStandardMaterial({color:'#ffffff'})
 
 
 // Mesh
@@ -110,7 +110,7 @@ window.addEventListener('resize', () =>
  */
 // Base camera
 const camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 0.1, 100)
-camera.position.set(0.0, 1.0, 5.0)
+camera.position.set(0.0, -4.0, 8.0)
 scene.add(camera)
 
 // Controls

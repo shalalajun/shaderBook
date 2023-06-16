@@ -15,7 +15,7 @@ const canvas = document.querySelector('canvas.webgl')
 
 // Scene
 const scene = new THREE.Scene()
-scene.background = new THREE.Color('#333333');
+scene.background = new THREE.Color('#dee0f7');
 
 /**
  * Textures
@@ -60,9 +60,9 @@ scene.add(ambientLight);
 // Material
 const shadowColor = new THREE.Color(0.158,0.137,0.735)
 
-const headMaterial = new StyleShader({color:'#ffffff', map: catHead})
-const bodyMaterial = new StyleShader({color:'#ffffff', map: catBody})
-const planeMaterial = new StyleShader({color:'#ffffff'})
+const headMaterial = new StyleShader({color:'#ffffff', map: catHead, shadowColor: new THREE.Color(0.158,0.137,0.735)})
+const bodyMaterial = new StyleShader({color:'#ffffff', map: catBody, shadowColor: new THREE.Color(0.158,0.137,0.735)})
+const planeMaterial = new StyleShader({color:'#ffffff', shadowColor: new THREE.Color(0.158,0.137,0.735)})
 
 
 const planeMesh = new THREE.Mesh(plane, planeMaterial)

@@ -33,9 +33,9 @@ void main() {
 
   float lightIntensity =max((NdotL * shadow),0.0) *0.5+0.5;
 
-  vec3 directionalLight = directionalLights[0].color * lightIntensity;
+  //vec3 directionalLight = directionalLights[0].color * lightIntensity;
 
-  // vec3 directionalLight = mix(uShadowColor,directionalLights[0].color, vec3(lightIntensity));
+  vec3 directionalLight = mix(uShadowColor,directionalLights[0].color, vec3(lightIntensity));
 
 
 

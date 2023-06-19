@@ -6,9 +6,12 @@ import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js'
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js'
 import { SMAAPass } from 'three/examples/jsm/postprocessing/SMAAPass.js'
+import FlipBookAni from './FlipBook.js';
+
 import * as dat from 'lil-gui'
 
 import StyleShader from './styleShader.js'
+import FlipBookShader from './flipBookShader.js'
 /**
  * Base
  */
@@ -38,6 +41,9 @@ catHead.flipY = false
 const catBody = textureLoader.load('./textures/body.jpg')
 catBody.flipY = false
 
+const catHeadSprite = textureLoader.load('./textures/sprite.png')
+catHeadSprite.flipY = false
+catHeadSprite.needsUpdate = true
 /**
  * Test mesh
  */
@@ -68,12 +74,17 @@ scene.add(ambientLight);
 
 
 // Material
+
+
+
 const shadowColor = new THREE.Color(0.158,0.137,0.735)
 
-const headMaterial = new StyleShader({color:'#ffffff', map: catHead, shadowColor: new THREE.Color(0.158,0.137,0.735)})
+
+const headMaterial = new StyleShader({color:'#ffffff', map: catHead , shadowColor: new THREE.Color(0.158,0.137,0.735)})
 const bodyMaterial = new StyleShader({color:'#ffffff', map: catBody, shadowColor: new THREE.Color(0.158,0.137,0.735)})
 const planeMaterial = new StyleShader({color:'#ffffff', shadowColor: new THREE.Color(0.158,0.137,0.735)})
 
+const flipBookMaterial = new FlipBookShader({map:catHeadSprite, tileHorize: 5, tileVertical:5 })
 
 
 gui.add(bodyMaterial.uniforms.uMedThreshold,'value').min(0.0).max(1.0).step(0.001).name('_medThreshold')
@@ -146,7 +157,7 @@ let model;
 
         if(character instanceof THREE.Mesh && character.name == "Head")
         {
-            character.material = headMaterial
+            character.material = flipBookMaterial
             character.castShadow = true
             character.receiveShadow = true
         }
@@ -259,10 +270,11 @@ const tick = () =>
 
     // Update controls
     controls.update()
+  
 
     // Render
-    // renderer.render(scene, camera)
-    effectComposer.render()
+    renderer.render(scene, camera)
+    //effectComposer.render()
 
     // Call tick again on the next frame
     window.requestAnimationFrame(tick)

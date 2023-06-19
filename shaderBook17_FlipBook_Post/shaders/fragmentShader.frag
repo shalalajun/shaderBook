@@ -16,6 +16,17 @@ varying vec3 vNormal;
 varying vec3 vViewDir;
 varying vec2 vUv;
 
+uniform float uMedThreshold;
+uniform float uMedSmooth;
+uniform float uShadowThreshold;
+uniform float uShadowSmooth;
+
+
+float LinearStep(float minValue, float maxValue, float In)
+{
+  return saturate((In-minValue) / (maxValue - minValue));
+}
+
 void main() {
 
   DirectionalLightShadow directionalShadow = directionalLightShadows[0];
@@ -31,12 +42,20 @@ void main() {
 
   float NdotL = dot(vNormal, directionalLights[0].direction);
 
-  float lightIntensity =max((NdotL * shadow),0.0) * 0.5+0.5;
+  float lightIntensity =max((NdotL * shadow),0.0) * 0.5 + 0.5;
+  float shadowIntensity =max((NdotL*shadow),0.0) * 0.5 + 0.5;
 
   //vec3 directionalLight = directionalLights[0].color * lightIntensity;
 
-  vec3 directionalLight = mix(uShadowColor,directionalLights[0].color, vec3(lightIntensity));
 
+  float smoothMedTone = LinearStep(uMedThreshold - uMedSmooth, uMedThreshold + uMedSmooth, lightIntensity);
+  vec3 medToneColor = mix(uColor, directionalLights[0].color,vec3(smoothMedTone));
+
+  float smoothShadow = LinearStep(uShadowThreshold - uShadowSmooth, uShadowThreshold + uShadowSmooth, lightIntensity);
+  vec3 shadowColor = mix(uShadowColor, medToneColor, smoothShadow * vec3(shadowIntensity));
+
+  //vec3 directionalLight = mix(uShadowColor,directionalLights[0].color, vec3(lightIntensity));
+  vec3 directionalLight = directionalLights[0].color * shadowColor;
 
 
   vec3 halfVector = normalize(directionalLights[0].direction + vViewDir);

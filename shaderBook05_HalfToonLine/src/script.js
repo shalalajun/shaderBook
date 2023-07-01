@@ -155,10 +155,10 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap
  * post processing
  */
 
-// const renderTarget = new THREE.WebGLRenderTarget(
-//     800,
-//     600
-// )
+const renderTarget = new THREE.WebGLRenderTarget(
+    800,
+    600
+)
 
 const effectComposer = new EffectComposer(renderer)
 effectComposer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
@@ -172,8 +172,9 @@ dotScreenPass.enabled = false
 effectComposer.addPass(dotScreenPass)
 
 const outlinePass = new OutlinePass(new THREE.Vector2( window.innerWidth, window.innerHeight ), scene, camera)
-outlinePass.edgeThickness = 2.0;
-outlinePass.edgeStrength = 2.0;
+outlinePass.edgeThickness = 1.0;
+outlinePass.edgeStrength = 1.0;
+outlinePass.visibleEdgeColor.set( '#ff00ff' );
 effectComposer.addPass(outlinePass)
 
 // const gammaCorrectionPass = new ShaderPass(GammaCorrectionShader)

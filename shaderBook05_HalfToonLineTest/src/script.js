@@ -1,6 +1,15 @@
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import * as dat from 'lil-gui'
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js'
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
+import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js'
+import { DotScreenPass } from 'three/examples/jsm/postprocessing/DotScreenPass.js'
+import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass.js'
+// import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js'
+import { GlitchPass } from 'three/examples/jsm/postprocessing/GlitchPass.js'
+import { RGBShiftShader } from 'three/examples/jsm/shaders/RGBShiftShader.js'
+import { GammaCorrectionShader } from 'three/examples/jsm/shaders/GammaCorrectionShader.js'
 import vertexShader from '../shaders/vertexShader.vert'
 import fragmentShader from '../shaders/fragmentShader.frag'
 
@@ -69,13 +78,6 @@ const phongMaterial = new THREE.MeshPhongMaterial({color:"#ffffff"})
 const planeMaterial = new THREE.MeshStandardMaterial({color:'#ff0000'})
 
 
-const outMaterial = new THREE.MeshBasicMaterial(
-    {
-        color: '#000000',
-        side: THREE.BackSide
-    }
-)
-
 // Mesh
 const mesh = new THREE.Mesh(geometry, material)
 mesh.position.z = 0.5
@@ -83,19 +85,17 @@ mesh.castShadow = true
 mesh.receiveShadow = true
 
 
-const edgeSize = 0.02;
-const outGeometry = new THREE.SphereGeometry(1.0 + edgeSize ,128,128) 
-const outLineMesh = new THREE.Mesh(outGeometry, outMaterial)
-outLineMesh.position.z = 0.5
-scene.add(outLineMesh)
-
-
+const mesh2 = new THREE.Mesh(geometry, material)
+mesh2.position.x = 1.5
+mesh2.position.z = 2.5
+mesh2.castShadow = true
+mesh2.receiveShadow = true
 
 const planeMesh = new THREE.Mesh(plane, material)
 planeMesh.position.z = -1
 planeMesh.receiveShadow = true
 
-scene.add(mesh)
+scene.add(mesh,mesh2)
 scene.add(planeMesh)
 
 /**
@@ -120,7 +120,11 @@ window.addEventListener('resize', () =>
     renderer.setSize(sizes.width, sizes.height)
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 
-  
+     // Update effectComposer
+     composer.setSize(sizes.width, sizes.height)
+     composer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+
+     pass.uniforms.iResolution.value.set(sizes.width, sizes.height);
 })
 
 /**
@@ -148,11 +152,67 @@ renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap
 
 
+const VERTEX = `
+varying vec2 vUv;
+void main() {
+    vec4 mvPosition = modelViewMatrix * vec4(position, 1.);
+    gl_Position = projectionMatrix * mvPosition;
+    vUv = uv;
+}
+`;
+
+const FRAGMENT = `
+// Edge detection Pass
+
+varying vec2 vUv;
+uniform sampler2D tDiffuse;
+uniform vec2 iResolution;
+
+#define Sensitivity (vec2(0.3, 1.5) * iResolution.y / 400.0)
+float checkSame(vec4 center, vec4 samplef)
+{
+    vec2 centerNormal = center.xy;
+    float centerDepth = center.z;
+    vec2 sampleNormal = samplef.xy;
+    float sampleDepth = samplef.z;
+    vec2 diffNormal = abs(centerNormal - sampleNormal) * Sensitivity.x;
+    bool isSameNormal = (diffNormal.x + diffNormal.y) < 0.1;
+    float diffDepth = abs(centerDepth - sampleDepth) * Sensitivity.y;
+    bool isSameDepth = diffDepth < 0.1;
+    return (isSameNormal && isSameDepth) ? 1.0 : 0.0;
+}
+void main()
+{
+    vec4 sample0 = texture(tDiffuse, vUv);
+    vec4 sample1 = texture(tDiffuse, vUv + (vec2(1.0, 1.0) / iResolution.xy));
+    vec4 sample2 = texture(tDiffuse, vUv + (vec2(-1.0, -1.0) / iResolution.xy));
+    vec4 sample3 = texture(tDiffuse, vUv + (vec2(-1.0, 1.0) / iResolution.xy));
+    vec4 sample4 = texture(tDiffuse, vUv + (vec2(1.0, -1.0) / iResolution.xy));
+    float edge = checkSame(sample1, sample2) * checkSame(sample3, sample4);
+    gl_FragColor = vec4(edge, sample0.w, 1.0, 1.0);
+}
+`;
+
+const resolution = new THREE.Vector2(window.innerWidth, window.innerHeight);
+const drawShader = {
+    uniforms: {
+        tDiffuse: { value: null },
+        iResolution: { type: 'v2', value: resolution },
+    },
+    vertexShader : VERTEX,
+    fragmentShader: FRAGMENT
+}
 
 
+/**
+ * 
+ */
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
 
-// const gammaCorrectionPass = new ShaderPass(GammaCorrectionShader)
-// effectComposer.addPass(gammaCorrectionPass) 
+const pass = new ShaderPass(drawShader);
+pass.renderToScreen = true;
+composer.addPass(pass);
 
 
 /**
@@ -168,8 +228,8 @@ const tick = () =>
     controls.update()
 
     // Render
-    renderer.render(scene, camera)
- 
+    //renderer.render(scene, camera)
+    composer.render();
 
     // Call tick again on the next frame
     window.requestAnimationFrame(tick)
